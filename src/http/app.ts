@@ -556,6 +556,7 @@ export async function createApp(deps: AppDeps): Promise<BuiltApp> {
   });
 
   app.get("/bot-camera", async (_request, reply) => {
+    reply.header("cache-control", "no-cache");
     return reply.type("text/html; charset=utf-8").send(botCameraHtml());
   });
 
@@ -587,14 +588,44 @@ function botCameraHtml(): string {
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=1280, initial-scale=1">
 <title>GLDN</title>
 <style>
   html, body { margin: 0; padding: 0; width: 1280px; height: 720px; overflow: hidden; background: #0e1a2e; }
-  video { display: block; width: 1280px; height: 720px; object-fit: cover; background: #0e1a2e; }
+  video { display: block; width: 1280px; height: 720px; margin: 0; object-fit: contain; background: #0e1a2e; image-rendering: auto; }
 </style>
 </head>
 <body>
-<video src="/media/gldn-brand-03-loop.mp4" autoplay muted loop playsinline></video>
+<video id="tile" width="1280" height="720" src="/media/gldn-brand-03-loop.mp4" autoplay muted loop playsinline preload="auto"></video>
+<script>
+(function () {
+  var video = document.getElementById("tile");
+  var ratio = window.devicePixelRatio || 1;
+  if (ratio !== 1) {
+    var cssWidth = 1280 / ratio;
+    var cssHeight = 720 / ratio;
+    var scale = 1 / ratio;
+    var viewport = document.querySelector('meta[name="viewport"]');
+    viewport.setAttribute("content", "width=1280, initial-scale=" + scale + ", minimum-scale=" + scale + ", maximum-scale=" + scale + ", user-scalable=no");
+    document.documentElement.style.width = cssWidth + "px";
+    document.documentElement.style.height = cssHeight + "px";
+    document.body.style.width = cssWidth + "px";
+    document.body.style.height = cssHeight + "px";
+    video.style.width = cssWidth + "px";
+    video.style.height = cssHeight + "px";
+  }
+  var arm = function () {
+    if (!isFinite(video.duration)) return;
+    video.addEventListener("timeupdate", function () {
+      if (video.currentTime >= video.duration - (1 / 30)) video.currentTime = 0;
+    });
+  };
+  if (video.readyState >= 1) arm();
+  else video.addEventListener("loadedmetadata", arm);
+  var started = video.play();
+  if (started && started.catch) started.catch(function () {});
+})();
+</script>
 </body>
 </html>`;
 }

@@ -189,7 +189,7 @@ Tests use a fake Recall server. They cover env validation, webhook signatures (v
 
 `assets/gldn-brand-03-loop.mp4` is JJ's GLDN brand 03 loop (1280×720, H.264, 30 fps, 8 seconds, no audio). The app serves two public URLs with no login:
 
-- `GET /bot-camera` is a 1280×720 page with a navy background and a fullscreen `<video>` (`autoplay`, `muted`, `loop`, `playsinline`, `object-fit: cover`). There is no other UI.
+- `GET /bot-camera` is a 1280×720 page with a navy background and one `<video>` at `width="1280"` `height="720"` (`autoplay`, `muted`, `loop`, `playsinline`, `preload="auto"`, `object-fit: contain`). There is no other UI, no CSS transform, and no scaling when `devicePixelRatio` is 1. If the renderer reports another ratio, the viewport scale is set to `1 / devicePixelRatio` so the 1280×720 bitmap still lands on 1280×720 device pixels. The page seeks to the start one frame before the end so the loop does not flash black.
 - `GET /media/gldn-brand-03-loop.mp4` returns `video/mp4` and honors `Range` requests so the player can seek and loop.
 
 Recall's renderer loads the page, so both URLs stay unauthenticated. The page must be on `PUBLIC_API_BASE_URL`, never localhost.
@@ -213,7 +213,9 @@ With `BOT_CAMERA_MODE=webpage` (the default), Create Bot and calendar `bot_confi
 }
 ```
 
-`output_media.camera.config` currently supports `url` only. Recall turns the page into 1280×720 video at 15 fps, so the 30 fps file is displayed at 15 fps. The static JPEG is not included in this mode. Recall combines `automatic_video_output` with `output_media` only when camera and screenshare are absent, and a webpage camera is the bot's video for the whole call.
+The file in git is a high-quality re-encode of JJ's bordered master: libx264 CRF 14, preset slow, yuv420p, High profile, no audio, no scale and no crop, keyframe every 30 frames (1 second at 30 fps, scenecut off), `+faststart`. It stays 1280×720 at 30 fps. A 15 fps CRF 14 encode was compared on the same frames (SSIM about 0.999 against the master for both) and was not sharper, so the shipped file stays 30 fps and keeps the motion in the master.
+
+`output_media.camera.config` currently supports `url` only. There is no request field for camera resolution, frame rate, or bitrate. Recall captures the webpage at 1280×720 and 15 fps for the default `web` bot, `web_4_core`, and `web_gpu`. A larger variant can stop the page from dropping frames; it does not raise that 1280×720 / 15 fps ceiling, and Zoom can still compress the tile after that. The static JPEG is not included in webpage mode. Recall combines `automatic_video_output` with `output_media` only when camera and screenshare are absent, and a webpage camera is the bot's video for the whole call.
 
 `web_4_core` is the variant in Recall's webpage-output example. It runs on a larger machine (about 4 CPU cores versus the default `web` bot's fraction of a core). Recall bills that variant at a higher rate than the default bot. See Recall's bot variant billing before leaving webpage mode on for every meeting. Image mode does not set `variant`, so those bots stay on the default price.
 

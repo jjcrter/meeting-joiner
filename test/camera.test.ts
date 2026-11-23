@@ -17,8 +17,15 @@ describe("animated camera tile", () => {
     expect(page.headers["content-type"]).toContain("text/html");
     expect(page.body).toContain("width: 1280px");
     expect(page.body).toContain("height: 720px");
-    expect(page.body).toContain("object-fit: cover");
-    expect(page.body).toContain('autoplay muted loop playsinline');
+    expect(page.body).toContain("margin: 0");
+    expect(page.body).toContain("overflow: hidden");
+    expect(page.body).toContain("object-fit: contain");
+    expect(page.body).not.toContain("object-fit: cover");
+    expect(page.body).not.toContain("transform:");
+    expect(page.body).toContain("image-rendering: auto");
+    expect(page.body).toContain('width="1280" height="720"');
+    expect(page.body).toContain('autoplay muted loop playsinline preload="auto"');
+    expect(page.body).toContain("devicePixelRatio");
     expect(page.body).toContain('src="/media/gldn-brand-03-loop.mp4"');
     expect(page.body).not.toContain("<button");
 
