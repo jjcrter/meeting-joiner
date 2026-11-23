@@ -1,0 +1,122 @@
+:root {
+  color: #f4efe6;
+  background: #0e1a2e;
+  font-family: Inter, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(14, 26, 46, 0.2), rgba(14, 26, 46, 0.92)),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 18px),
+    #0e1a2e;
+}
+
+a { color: inherit; }
+
+button, input, select {
+  font: inherit;
+  color: inherit;
+}
+
+.shell { max-width: 1080px; margin: 0 auto; padding: 28px 20px 64px; }
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.brand { display: flex; gap: 14px; align-items: center; text-decoration: none; }
+.mark {
+  width: 42px;
+  height: 42px;
+  background:
+    linear-gradient(135deg, transparent 0 46%, #c4a35a 46% 100%) top right / 58% 42% no-repeat,
+    linear-gradient(#f4efe6, #f4efe6) bottom left / 62% 62% no-repeat;
+  clip-path: polygon(0 28%, 0 100%, 70% 100%, 100% 0, 48% 0, 48% 38%, 100% 38%, 100% 62%, 68% 62%, 68% 78%, 18% 28%);
+}
+.brand strong { display: block; letter-spacing: 0.14em; font-size: 13px; font-weight: 600; }
+.brand span { color: #c4a35a; letter-spacing: 0.18em; font-size: 11px; }
+
+nav { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+nav a, .ghost, .primary, .danger {
+  border: 1px solid transparent;
+  background: transparent;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+nav a.active, nav a:hover { border-color: rgba(196, 163, 90, 0.6); color: #c4a35a; }
+
+.primary, .danger {
+  background: #c4a35a;
+  color: #0e1a2e;
+  font-weight: 650;
+}
+.danger { background: transparent; color: #f4efe6; border-color: rgba(244, 239, 230, 0.3); }
+.ghost { border-color: rgba(244, 239, 230, 0.25); }
+
+h1 { font-family: "Iowan Old Style", Palatino, Georgia, serif; font-weight: 500; font-size: 42px; margin: 0 0 8px; }
+h2 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
+.lede { max-width: 62ch; color: rgba(244, 239, 230, 0.78); margin-bottom: 24px; }
+
+.grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+.card {
+  background: rgba(8, 16, 30, 0.72);
+  border: 1px solid rgba(196, 163, 90, 0.22);
+  border-radius: 18px;
+  padding: 20px;
+}
+label { display: block; font-size: 13px; letter-spacing: 0.04em; margin: 14px 0 6px; color: #c4a35a; }
+input, select {
+  width: 100%;
+  background: #0e1a2e;
+  border: 1px solid rgba(244, 239, 230, 0.18);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.row { display: flex; gap: 16px; align-items: center; margin-top: 14px; }
+.check { display: flex; gap: 8px; align-items: center; color: #f4efe6; }
+.check input { width: auto; }
+.actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.tile-preview { width: 100%; border-radius: 12px; display: block; }
+.muted { color: rgba(244, 239, 230, 0.68); font-size: 14px; }
+.error { color: #ffb4a8; }
+.ok { color: #d5e7c5; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid rgba(244, 239, 230, 0.1); vertical-align: top; }
+th { color: #c4a35a; font-weight: 600; font-size: 12px; letter-spacing: 0.08em; }
+.badge {
+  display: inline-block;
+  border: 1px solid rgba(196, 163, 90, 0.5);
+  color: #c4a35a;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.badge.warn { color: #f4efe6; border-color: rgba(244, 239, 230, 0.4); }
+.badge.bad { color: #ffb4a8; border-color: rgba(255, 180, 168, 0.6); }
+pre.transcript {
+  white-space: pre-wrap;
+  background: #091221;
+  border-radius: 12px;
+  padding: 16px;
+  font-family: "Iowan Old Style", Palatino, Georgia, serif;
+  font-size: 16px;
+}
+.login { max-width: 460px; margin: 10vh auto; }
+
+@media (max-width: 800px) {
+  .grid { grid-template-columns: 1fr; }
+  h1 { font-size: 34px; }
+  .top { align-items: flex-start; flex-direction: column; }
+}
