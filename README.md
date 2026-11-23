@@ -213,7 +213,7 @@ With `BOT_CAMERA_MODE=webpage` (the default), Create Bot and calendar `bot_confi
 }
 ```
 
-The file in git is a high-quality re-encode of JJ's bordered master: libx264 CRF 14, preset slow, yuv420p, High profile, no audio, no scale and no crop, keyframe every 30 frames (1 second at 30 fps, scenecut off), `+faststart`. It stays 1280×720 at 30 fps. A 15 fps CRF 14 encode was compared on the same frames (SSIM about 0.999 against the master for both) and was not sharper, so the shipped file stays 30 fps and keeps the motion in the master.
+The file in git is a high-quality re-encode of JJ's official GLDN loop: libx264 CRF 14, preset slow, yuv420p, High profile, no audio, no scale and no crop, keyframe every 30 frames (1 second at 30 fps, scenecut off), `+faststart`. It stays 1280×720 at 30 fps. A 15 fps CRF 14 encode of the same master was within about 0.001 SSIM of the 30 fps encode on sampled frames and was not sharper, so the shipped file stays 30 fps and keeps the motion in the master.
 
 `output_media.camera.config` currently supports `url` only. There is no request field for camera resolution, frame rate, or bitrate. Recall captures the webpage at 1280×720 and 15 fps for the default `web` bot, `web_4_core`, and `web_gpu`. A larger variant can stop the page from dropping frames; it does not raise that 1280×720 / 15 fps ceiling, and Zoom can still compress the tile after that. The static JPEG is not included in webpage mode. Recall combines `automatic_video_output` with `output_media` only when camera and screenshare are absent, and a webpage camera is the bot's video for the whole call.
 
