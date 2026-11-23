@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: gldn
+      POSTGRES_PASSWORD: gldn
+      POSTGRES_DB: gldn_recall
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gldn -d gldn_recall"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      RECALL_REGION: us-west-2
+      RECALL_API_KEY: ${RECALL_API_KEY}
+      RECALL_WEBHOOK_VERIFICATION_SECRET: ${RECALL_WEBHOOK_VERIFICATION_SECRET}
+      PUBLIC_API_BASE_URL: ${PUBLIC_API_BASE_URL}
+      DATABASE_URL: postgresql://gldn:gldn@db:5432/gldn_recall
+      SESSION_SECRET: ${SESSION_SECRET}
+      APP_BASE_URL: ${APP_BASE_URL:-}
+      PORT: 3000
+      BOT_NAME: ${BOT_NAME:-GLDN PR Notetaker}
+      BOT_CAMERA_MODE: ${BOT_CAMERA_MODE:-webpage}
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-}
+      GOOGLE_OAUTH_REDIRECT_URI: ${GOOGLE_OAUTH_REDIRECT_URI:-}
+      APP_SHARED_PASSWORD: ${APP_SHARED_PASSWORD:-}
+    ports:
+      - "3000:3000"

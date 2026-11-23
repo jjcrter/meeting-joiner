@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id
+  email         String         @unique
+  name          String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+  bots          Bot[]
+  calendars     Calendar[]
+  recordingPref RecordingPref?
+
+  @@map("users")
+}
+
+model Bot {
+  id                 String           @id
+  recallBotId        String?          @unique @map("recall_bot_id")
+  meetingUrl         String           @map("meeting_url")
+  platform           String
+  botName            String           @map("bot_name")
+  joinAt             DateTime         @map("join_at")
+  source             String
+  launchedByUserId   String?          @map("launched_by_user_id")
+  launchedBy         User?            @relation(fields: [launchedByUserId], references: [id], onDelete: SetNull)
+  calendarEventId    String?          @map("calendar_event_id")
+  latestStatus       String           @default("scheduled") @map("latest_status")
+  latestSubCode      String?          @map("latest_sub_code")
+  latestStatusAt     DateTime?        @map("latest_status_at")
+  transcriptEnabled  Boolean          @default(true) @map("transcript_enabled")
+  chatNoticeEnabled  Boolean          @default(false) @map("chat_notice_enabled")
+  createState        String           @default("pending") @map("create_state")
+  createError        String?          @map("create_error")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  statusEvents       BotStatusEvent[]
+  recordings         Recording[]
+
+  @@index([updatedAt])
+  @@index([launchedByUserId])
+  @@map("bots")
+}
+
+model BotStatusEvent {
+  id              String   @id
+  botId           String   @map("bot_id")
+  bot             Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
+  code            String
+  subCode         String?  @map("sub_code")
+  recallUpdatedAt DateTime @map("recall_updated_at")
+  receivedAt      DateTime @default(now()) @map("received_at")
+
+  @@index([botId, recallUpdatedAt])
+  @@map("bot_status_events")
+}
+
+model Recording {
+  id                    String       @id
+  recallRecordingId     String       @unique @map("recall_recording_id")
+  botId                 String       @map("bot_id")
+  bot                   Bot          @relation(fields: [botId], references: [id], onDelete: Cascade)
+  status                String
+  subCode               String?      @map("sub_code")
+  transcriptRequestedAt DateTime?    @map("transcript_requested_at")
+  createdAt             DateTime     @default(now()) @map("created_at")
+  transcripts           Transcript[]
+
+  @@index([botId])
+  @@map("recordings")
+}
+
+model Transcript {
+  id                 String    @id
+  recallTranscriptId String?   @unique @map("recall_transcript_id")
+  recordingId        String    @map("recording_id")
+  recording          Recording @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  status             String
+  subCode            String?   @map("sub_code")
+  provider           String?
+  rawJson            Json?     @map("raw_json")
+  readableText       String?   @map("readable_text")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  @@index([recordingId])
+  @@map("transcripts")
+}
+
+model Calendar {
+  id               String          @id
+  recallCalendarId String          @unique @map("recall_calendar_id")
+  userId           String          @map("user_id")
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform         String
+  platformEmail    String          @map("platform_email")
+  status           String
+  lastSyncedAt     DateTime?       @map("last_synced_at")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  events           CalendarEvent[]
+
+  @@index([userId])
+  @@map("calendars")
+}
+
+model CalendarEvent {
+  recallEventId   String   @id @map("recall_event_id")
+  calendarId      String   @map("calendar_id")
+  calendar        Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  icalUid         String   @default("") @map("ical_uid")
+  title           String   @default("")
+  startTime       DateTime @map("start_time")
+  endTime         DateTime @map("end_time")
+  meetingUrl      String?  @map("meeting_url")
+  meetingPlatform String?  @map("meeting_platform")
+  isDeleted       Boolean  @default(false) @map("is_deleted")
+  shouldRecord    Boolean  @default(false) @map("should_record")
+  recallBotIds    Json     @default("[]") @map("recall_bot_ids")
+  raw             Json     @default("{}")
+  scheduleError   String?  @map("schedule_error")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([calendarId, startTime])
+  @@index([icalUid])
+  @@map("calendar_events")
+}
+
+model RecordingPref {
+  userId    String @id @map("user_id")
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule      String @default("manual")
+  overrides Json   @default("{}")
+
+  @@map("recording_prefs")
+}
+
+model WebhookEvent {
+  webhookId   String    @id @map("webhook_id")
+  event       String
+  payload     Json
+  verified    Boolean   @default(true)
+  status      String
+  error       String?
+  receivedAt  DateTime  @default(now()) @map("received_at")
+  processedAt DateTime? @map("processed_at")
+
+  @@index([receivedAt])
+  @@map("webhook_events")
+}
