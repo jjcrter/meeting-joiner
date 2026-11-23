@@ -93,6 +93,8 @@ export async function launchBot(deps: {
     base64Jpeg: deps.jpegBase64,
     metadata,
     chatNotice: chatNoticeEnabled,
+    cameraMode: deps.config.botCameraMode,
+    cameraPageUrl: deps.config.botCameraPageUrl,
   });
 
   try {

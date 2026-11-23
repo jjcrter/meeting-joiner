@@ -54,6 +54,13 @@ describe("loadConfig", () => {
     expect(() => loadConfig({ ...complete, RECALL_REGION: "us-east-1" })).toThrow(/us-west-2/);
   });
 
+  it("defaults the camera to the webpage loop and rejects unknown modes", () => {
+    expect(loadConfig(complete).botCameraMode).toBe("webpage");
+    expect(loadConfig(complete).botCameraPageUrl).toBe("https://bot.gldnpr.test/bot-camera");
+    expect(loadConfig({ ...complete, BOT_CAMERA_MODE: "image" }).botCameraMode).toBe("image");
+    expect(() => loadConfig({ ...complete, BOT_CAMERA_MODE: "gif" })).toThrow(/BOT_CAMERA_MODE/);
+  });
+
   it("rejects localhost and trailing slashes on the public URL", () => {
     expect(() => loadConfig({ ...complete, PUBLIC_API_BASE_URL: "http://localhost:3000" })).toThrow(/PUBLIC_API_BASE_URL/);
     expect(() => loadConfig({ ...complete, PUBLIC_API_BASE_URL: "https://bot.gldnpr.test/" })).toThrow(/trailing slash/);

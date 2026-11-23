@@ -86,8 +86,10 @@ export function LaunchPage() {
       </form>
       <aside className="card">
         <h2>Camera tile</h2>
-        <p className="muted">This 1280×720 image is what the meeting sees instead of a black tile.</p>
-        <img className="tile-preview" src="/brand/bot-background.jpg" alt="GLDN PR branded bot camera tile" />
+        <p className="muted">
+          The meeting camera plays this loop. Set BOT_CAMERA_MODE=image to send the still JPEG instead.
+        </p>
+        <video className="tile-preview" src="/media/gldn-brand-03-loop.mp4" autoPlay muted loop playsInline />
       </aside>
     </section>
   );

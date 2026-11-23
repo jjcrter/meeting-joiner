@@ -39,7 +39,11 @@ export interface AppConfig {
   googleRedirectUri: string;
   appSharedPassword: string | null;
   cookieSecure: boolean;
+  botCameraMode: BotCameraMode;
+  botCameraPageUrl: string;
 }
+
+export type BotCameraMode = "webpage" | "image";
 
 export interface EnvSource {
   [key: string]: string | undefined;
@@ -180,6 +184,14 @@ export function loadConfig(source: EnvSource): AppConfig {
 
   const botName = source.BOT_NAME?.trim() || "GLDN PR Notetaker";
   const shared = source.APP_SHARED_PASSWORD?.trim() || null;
+  const cameraModeRaw = source.BOT_CAMERA_MODE?.trim() || "webpage";
+  if (cameraModeRaw !== "webpage" && cameraModeRaw !== "image") {
+    throw new ConfigError(
+      "BOT_CAMERA_MODE",
+      "Use webpage (animated GLDN loop as the camera) or image (static JPEG). See README section Animated camera tile.",
+    );
+  }
+  const botCameraMode: BotCameraMode = cameraModeRaw;
 
   return {
     recallRegion: RECALL_REGION,
@@ -201,6 +213,8 @@ export function loadConfig(source: EnvSource): AppConfig {
     googleRedirectUri,
     appSharedPassword: shared,
     cookieSecure: publicApiBaseUrl.startsWith("https://"),
+    botCameraMode,
+    botCameraPageUrl: `${publicApiBaseUrl}/bot-camera`,
   };
 }
 
@@ -217,6 +231,7 @@ export function configPresence(config: AppConfig, source: EnvSource): Record<str
     GOOGLE_OAUTH_REDIRECT_URI: Boolean(source.GOOGLE_OAUTH_REDIRECT_URI?.trim()),
     APP_SHARED_PASSWORD: Boolean(config.appSharedPassword),
     BOT_NAME: Boolean(source.BOT_NAME?.trim()),
+    BOT_CAMERA_MODE: source.BOT_CAMERA_MODE?.trim() === "webpage" || source.BOT_CAMERA_MODE?.trim() === "image",
   };
 }
 

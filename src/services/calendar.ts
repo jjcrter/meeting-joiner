@@ -185,6 +185,8 @@ export async function applyRecordingDecision(deps: {
         joinAt,
         botName: deps.config.botName,
         base64Jpeg: deps.jpegBase64,
+        cameraMode: deps.config.botCameraMode,
+        cameraPageUrl: deps.config.botCameraPageUrl,
         metadata: {
           app_bot_id: appBotId,
           launched_by: deps.user.email,

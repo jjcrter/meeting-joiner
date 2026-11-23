@@ -54,19 +54,26 @@ describe("meeting launch and webhooks", () => {
       bot_name: string;
       chat?: unknown;
       recording_config?: unknown;
-      automatic_video_output: {
-        in_call_recording: { kind: string; b64_data: string };
-        in_call_not_recording: { kind: string; b64_data: string };
-      };
+      automatic_video_output?: unknown;
+      output_media: { camera: { kind: string; config: { url: string } } };
+      variant: Record<string, string>;
       metadata: { source: string };
     };
     expect(body.bot_name).toBe("GLDN PR Notetaker");
     expect(body.join_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(body.chat).toBeUndefined();
     expect(body.recording_config).toBeUndefined();
+    expect(body.automatic_video_output).toBeUndefined();
     expect(body.metadata.source).toBe("manual");
-    expect(body.automatic_video_output.in_call_recording.b64_data).toBe(harness.background.base64);
-    expect(body.automatic_video_output.in_call_not_recording.b64_data).toBe(harness.background.base64);
+    expect(body.output_media).toEqual({
+      camera: { kind: "webpage", config: { url: "https://bot.gldnpr.test/bot-camera" } },
+    });
+    expect(body.variant).toEqual({
+      zoom: "web_4_core",
+      google_meet: "web_4_core",
+      microsoft_teams: "web_4_core",
+      webex: "web_4_core",
+    });
     expect(JSON.stringify(body)).not.toMatch(/localhost|127\.0\.0\.1/);
 
     const botId = launch.json().bot.id as string;
@@ -215,7 +222,10 @@ describe("calendar scheduling", () => {
     expect(scheduledBody.deduplication_key).toBe(
       deduplicationKey("2026-11-25T15:00:00.000Z", "https://zoom.us/j/111"),
     );
-    expect(scheduledBody.bot_config.automatic_video_output).toBeTruthy();
+    expect(scheduledBody.bot_config.output_media).toEqual({
+      camera: { kind: "webpage", config: { url: "https://bot.gldnpr.test/bot-camera" } },
+    });
+    expect(scheduledBody.bot_config.automatic_video_output).toBeUndefined();
     expect(scheduledBody.bot_config.chat).toBeUndefined();
     expect(scheduledBody.bot_config.meeting_url).toBeUndefined();
     expect(JSON.stringify(scheduledBody)).not.toMatch(/localhost/);

@@ -24,6 +24,8 @@ export function smokeConfig(): AppConfig {
     googleRedirectUri: "https://bot.gldnpr.test/api/calendar/oauth/google/callback",
     appSharedPassword: "smoke-password",
     cookieSecure: true,
+    botCameraMode: "webpage",
+    botCameraPageUrl: "https://bot.gldnpr.test/bot-camera",
   };
 }
 

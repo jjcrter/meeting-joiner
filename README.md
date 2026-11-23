@@ -10,7 +10,7 @@ The bot is a silent notetaker. It does not post in meeting chat unless the perso
 
 - **Meeting bots**, not the Desktop SDK. The bot joins as a visible participant named `GLDN PR Notetaker`.
 - **Post-meeting Recall.ai transcription** (`recallai_async`, language `auto`, separate-stream diarization). Live transcript is not enabled. Recall bills this transcription; no second transcription vendor is required.
-- **Camera tile.** Every bot sends `automatic_video_output` for both `in_call_not_recording` and `in_call_recording`, using `assets/bot-background.jpg` (1280×720 JPEG, standard base64). The whole Zoom/Meet/Teams/Webex tile is that image.
+- **Camera tile.** The default `BOT_CAMERA_MODE=webpage` streams `/bot-camera` (the GLDN brand 03 loop) as the bot's camera and requests the `web_4_core` variant. `BOT_CAMERA_MODE=image` falls back to the static JPEG and the default bot variant. The two are not sent together.
 - **Calendar V2, Google only.** Deduplication key is `{start_time}-{meeting_url}` (Deduplicate All). Do not change that format; existing scheduled bots depend on it. The default recording rule is **manual**.
 - **Sign-in** is Google, restricted to `@gldnpr.com`, with an optional shared password for the time before Google verification is done.
 
@@ -185,9 +185,41 @@ npm run smoke
 
 Tests use a fake Recall server. They cover env validation, webhook signatures (valid, tampered, wrong secret, multiple signatures, missing headers, stale timestamp), retry timing, the dedup key, recording rules, the launch payload (video, `join_at`, no chat, us-west-2), the webhook-to-transcript path, and calendar scheduling. `npm run smoke` builds the real Fastify app, logs in, launches a bot against the fake Recall server, rejects a bad signature, applies a status webhook, and requests `/healthz` on 127.0.0.1.
 
-## Branded camera tile
+## Animated camera tile
 
-`assets/bot-background.jpg` is a 1280×720 JPEG (under Recall's 1.3 MB limit). At startup the server base64-encodes it with the standard alphabet and places the same string on:
+`assets/gldn-brand-03-loop.mp4` is JJ's GLDN brand 03 loop (1280×720, H.264, 30 fps, 8 seconds, no audio). The app serves two public URLs with no login:
+
+- `GET /bot-camera` is a 1280×720 page with a navy background and a fullscreen `<video>` (`autoplay`, `muted`, `loop`, `playsinline`, `object-fit: cover`). There is no other UI.
+- `GET /media/gldn-brand-03-loop.mp4` returns `video/mp4` and honors `Range` requests so the player can seek and loop.
+
+Recall's renderer loads the page, so both URLs stay unauthenticated. The page must be on `PUBLIC_API_BASE_URL`, never localhost.
+
+With `BOT_CAMERA_MODE=webpage` (the default), Create Bot and calendar `bot_config` send:
+
+```json
+{
+  "variant": {
+    "zoom": "web_4_core",
+    "google_meet": "web_4_core",
+    "microsoft_teams": "web_4_core",
+    "webex": "web_4_core"
+  },
+  "output_media": {
+    "camera": {
+      "kind": "webpage",
+      "config": { "url": "https://<PUBLIC_API_BASE_URL>/bot-camera" }
+    }
+  }
+}
+```
+
+`output_media.camera.config` currently supports `url` only. Recall turns the page into 1280×720 video at 15 fps, so the 30 fps file is displayed at 15 fps. The static JPEG is not included in this mode. Recall combines `automatic_video_output` with `output_media` only when camera and screenshare are absent, and a webpage camera is the bot's video for the whole call.
+
+`web_4_core` is the variant in Recall's webpage-output example. It runs on a larger machine (about 4 CPU cores versus the default `web` bot's fraction of a core). Recall bills that variant at a higher rate than the default bot. See Recall's bot variant billing before leaving webpage mode on for every meeting. Image mode does not set `variant`, so those bots stay on the default price.
+
+## Still image fallback
+
+Set `BOT_CAMERA_MODE=image` to send the JPEG instead of the webpage. `assets/bot-background.jpg` is a 1280×720 JPEG. The server base64-encodes it and sets:
 
 ```json
 "automatic_video_output": {
@@ -196,9 +228,7 @@ Tests use a fake Recall server. They cover env validation, webhook signatures (v
 }
 ```
 
-That object is included on manual Create Bot calls and on every calendar `bot_config`. Recall shows it as the bot's camera on Zoom, Google Meet, Microsoft Teams, and Webex. The Launch page previews the same file at `/brand/bot-background.jpg`.
-
-Replace the file only with another 1280×720 JPEG. The process refuses to start otherwise. Keep the logo and the words in the center; Meet crops the edges of a participant tile.
+No `output_media` and no `variant` are sent in image mode. Replace the JPEG only with another 1280×720 file. The Launch page previews the loop from `/media/gldn-brand-03-loop.mp4`. Settings shows the active mode and the camera page URL.
 
 ## How to test a live bot
 

@@ -7,6 +7,8 @@ interface Health {
   webhookUrl: string;
   env: Record<string, boolean>;
   googleOAuth: boolean;
+  cameraMode: "webpage" | "image";
+  cameraPageUrl: string;
   lastWebhookReceivedAt: string | null;
 }
 
@@ -28,6 +30,11 @@ export function SettingsPage() {
         Region <strong>{health.region}</strong>
       </p>
       <p className="muted">{health.apiBaseUrl}</p>
+      <h2>Camera</h2>
+      <p>
+        Mode <strong>{health.cameraMode}</strong>
+      </p>
+      <p className="muted">{health.cameraPageUrl}</p>
       <h2>Webhook endpoint</h2>
       <p>{health.webhookUrl}</p>
       <p className="muted">

@@ -25,6 +25,8 @@ export function testConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     googleRedirectUri: "https://bot.gldnpr.test/api/calendar/oauth/google/callback",
     appSharedPassword: "test-password",
     cookieSecure: false,
+    botCameraMode: "webpage",
+    botCameraPageUrl: "https://bot.gldnpr.test/bot-camera",
     ...overrides,
   };
 }
@@ -36,8 +38,11 @@ export interface RecordedCall {
   authorization: string | null;
 }
 
-export async function buildHarness(handler?: (url: string, init?: RequestInit) => Promise<Response> | Response) {
-  const config = testConfig();
+export async function buildHarness(
+  handler?: (url: string, init?: RequestInit) => Promise<Response> | Response,
+  overrides?: Partial<AppConfig>,
+) {
+  const config = testConfig(overrides);
   const background = loadBotBackground();
   const repo = new MemoryRepository();
   const queue = new MemoryQueue();

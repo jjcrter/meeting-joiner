@@ -226,6 +226,8 @@ export async function createApp(deps: AppDeps): Promise<BuiltApp> {
       webhookUrl: `${deps.config.publicApiBaseUrl}/api/recall/webhook`,
       env: configPresence(deps.config, source),
       googleOAuth: Boolean(deps.config.googleClientId && deps.config.googleClientSecret),
+      cameraMode: deps.config.botCameraMode,
+      cameraPageUrl: deps.config.botCameraPageUrl,
       lastWebhookReceivedAt: await deps.repo.lastWebhookReceivedAt(),
     };
   });
@@ -553,6 +555,15 @@ export async function createApp(deps: AppDeps): Promise<BuiltApp> {
     return reply.type("image/jpeg").send(fs.readFileSync(file));
   });
 
+  app.get("/bot-camera", async (_request, reply) => {
+    return reply.type("text/html; charset=utf-8").send(botCameraHtml());
+  });
+
+  app.get("/media/gldn-brand-03-loop.mp4", async (request, reply) => {
+    const range = Array.isArray(request.headers.range) ? request.headers.range[0] : request.headers.range;
+    return sendCameraLoop(range, reply);
+  });
+
   const webDist = path.resolve(process.cwd(), "web/dist");
   if (fs.existsSync(webDist)) {
     await app.register(fastifyStatic, { root: webDist });
@@ -567,6 +578,55 @@ export async function createApp(deps: AppDeps): Promise<BuiltApp> {
   });
 
   return { app, processJob };
+}
+
+const CAMERA_LOOP_PATH = path.resolve(process.cwd(), "assets/gldn-brand-03-loop.mp4");
+
+function botCameraHtml(): string {
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GLDN</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 1280px; height: 720px; overflow: hidden; background: #0e1a2e; }
+  video { display: block; width: 1280px; height: 720px; object-fit: cover; background: #0e1a2e; }
+</style>
+</head>
+<body>
+<video src="/media/gldn-brand-03-loop.mp4" autoplay muted loop playsinline></video>
+</body>
+</html>`;
+}
+
+function sendCameraLoop(rangeHeader: string | undefined, reply: FastifyReply) {
+  if (!fs.existsSync(CAMERA_LOOP_PATH)) {
+    return reply.code(404).send({ error: "Camera loop is missing." });
+  }
+  const size = fs.statSync(CAMERA_LOOP_PATH).size;
+  reply.header("accept-ranges", "bytes");
+  reply.header("cache-control", "public, max-age=3600");
+  reply.type("video/mp4");
+  if (!rangeHeader) {
+    reply.header("content-length", size);
+    return reply.send(fs.createReadStream(CAMERA_LOOP_PATH));
+  }
+  const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim());
+  if (!match || (match[1] === "" && match[2] === "")) {
+    reply.header("content-range", `bytes */${size}`);
+    return reply.code(416).send();
+  }
+  const start = match[1] === "" ? Math.max(size - Number(match[2]), 0) : Number(match[1]);
+  let end = match[2] === "" || match[1] === "" ? size - 1 : Number(match[2]);
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || start >= size) {
+    reply.header("content-range", `bytes */${size}`);
+    return reply.code(416).send();
+  }
+  end = Math.min(end, size - 1);
+  reply.code(206);
+  reply.header("content-range", `bytes ${start}-${end}/${size}`);
+  reply.header("content-length", String(end - start + 1));
+  return reply.send(fs.createReadStream(CAMERA_LOOP_PATH, { start, end }));
 }
 
 function headerValue(headers: Record<string, string | string[] | undefined>, name: string): string | undefined {
